@@ -12,6 +12,10 @@ options:
 settings:
   base:
     ENABLE_BITCODE: NO
+    # Keep Debug builds in one executable: the SwiftUI-preview split moves
+    # the dylib references into KOReader.debug.dylib, which the post-build
+    # framework rewrite doesn't patch.
+    ENABLE_DEBUG_DYLIB: NO
     SWIFT_VERSION: "5.0"
     # Skip the simulator slice for now — base/ libs are device-only.
     SUPPORTED_PLATFORMS: iphoneos
