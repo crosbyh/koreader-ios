@@ -83,7 +83,8 @@ targets:
           # Xcode strips PATH down. Reinstate Homebrew GNU tools used by
           # KOReader's Makefile.
           BREW_PREFIX="$(PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" brew --prefix)"
-          export PATH="$BREW_PREFIX/opt/findutils/libexec/gnubin:$BREW_PREFIX/opt/gnu-getopt/bin:$BREW_PREFIX/opt/make/libexec/gnubin:$BREW_PREFIX/opt/util-linux/bin:$BREW_PREFIX/bin:$PATH"
+          TOOLS_PATH="$BREW_PREFIX/opt/findutils/libexec/gnubin:$BREW_PREFIX/opt/gnu-getopt/bin:$BREW_PREFIX/opt/make/libexec/gnubin:$BREW_PREFIX/opt/util-linux/bin:$BREW_PREFIX/bin"
+          export PATH="$TOOLS_PATH:$PATH"
           cd "$SRCROOT"
           # Headless builds check out the superproject commit only; bring
           # base/ and the other submodules along when they're missing or stale.
@@ -97,7 +98,9 @@ targets:
           # …) into this script. They leak into base's host-tool builds
           # (LuaJIT's buildvm, meson's build-machine compiler) and turn them
           # into iOS binaries macOS kills, so build base in a clean environment.
-          env -i HOME="$HOME" USER="$USER" PATH="$PATH" TMPDIR="$TMPDIR" \
+          # Xcode's PATH also puts the raw toolchain clang first, which (unlike
+          # the /usr/bin shim) can't find the macOS SDK for host tools.
+          env -i HOME="$HOME" USER="$USER" PATH="$TOOLS_PATH:/usr/bin:/bin:/usr/sbin:/sbin" TMPDIR="$TMPDIR" \
             LANG="en_US.UTF-8" DEVELOPER_DIR="$DEVELOPER_DIR" \
             make TARGET=ios IOS_DEPLOYMENT_TARGET="$IPHONEOS_DEPLOYMENT_TARGET" all
         basedOnDependencyAnalysis: false
