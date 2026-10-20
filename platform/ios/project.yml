@@ -91,7 +91,13 @@ targets:
           # `all` (not `base`) so the koreader-ios-…/koreader staging
           # tree gets assembled too — the post-build script rsyncs from
           # there into the .app.
-          make TARGET=ios IOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}" all
+          # Xcode exports its build settings (SDKROOT, IPHONEOS_DEPLOYMENT_TARGET,
+          # …) into this script. They leak into base's host-tool builds
+          # (LuaJIT's buildvm, meson's build-machine compiler) and turn them
+          # into iOS binaries macOS kills, so build base in a clean environment.
+          env -i HOME="${HOME}" USER="${USER}" PATH="${PATH}" TMPDIR="${TMPDIR:-/tmp}" \
+            LANG="${LANG:-en_US.UTF-8}" DEVELOPER_DIR="${DEVELOPER_DIR}" \
+            make TARGET=ios IOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}" all
         basedOnDependencyAnalysis: false
     postBuildScripts:
       - name: Embed assets and dylibs
