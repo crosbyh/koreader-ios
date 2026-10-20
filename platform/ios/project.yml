@@ -16,6 +16,9 @@ settings:
     # the dylib references into KOReader.debug.dylib, which the post-build
     # framework rewrite doesn't patch.
     ENABLE_DEBUG_DYLIB: NO
+    # Lua resolves the launcher's ko_ios_* functions with dlsym at runtime;
+    # the default "all" strip of archive builds would remove them.
+    STRIP_STYLE: non-global
     SWIFT_VERSION: "5.0"
     # Skip the simulator slice for now — base/ libs are device-only.
     SUPPORTED_PLATFORMS: iphoneos

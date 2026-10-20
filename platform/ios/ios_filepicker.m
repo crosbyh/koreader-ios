@@ -26,6 +26,11 @@
 #include <stdint.h>
 #include <string.h>
 
+/* Nothing in C calls the ko_ios_* entry points: Lua reaches them through
+ * ffi.C (dlsym). Archive builds compile with -fvisibility=hidden and link
+ * with -dead_strip, which would drop them, so keep them exported. */
+#define KO_FFI_EXPORT __attribute__((visibility("default"), used))
+
 typedef enum {
     KO_PICK_IDLE = 0,
     KO_PICK_PENDING = 1,
@@ -128,7 +133,7 @@ static UIViewController *ko_ios_top_view_controller(void) {
     return vc;
 }
 
-bool ko_ios_pick_folder_start(void) {
+KO_FFI_EXPORT bool ko_ios_pick_folder_start(void) {
     if (g_pick_state == KO_PICK_PENDING) return false;
     g_pick_state = KO_PICK_PENDING;
     g_picked_path = nil;
@@ -164,7 +169,7 @@ bool ko_ios_pick_folder_start(void) {
  * out_path and out_bookmark_b64. After this call returns DONE_*, the
  * state is reset to IDLE so the next call returns IDLE until another
  * pick is started. */
-ko_pick_state_t ko_ios_pick_folder_poll(char *out_path, size_t path_cap,
+KO_FFI_EXPORT ko_pick_state_t ko_ios_pick_folder_poll(char *out_path, size_t path_cap,
                                         char *out_bookmark_b64, size_t bookmark_cap,
                                         char *out_error, size_t error_cap) {
     ko_pick_state_t state = g_pick_state;
@@ -203,7 +208,7 @@ ko_pick_state_t ko_ios_pick_folder_poll(char *out_path, size_t path_cap,
  * via SDL_GetWindowSafeArea because SDL only observes safeAreaInsets
  * via the safeAreaInsetsDidChange callback, which may not have fired
  * yet by the time we want to size the framebuffer. */
-void ko_ios_get_safe_area_pixels(int *out_top, int *out_right,
+KO_FFI_EXPORT void ko_ios_get_safe_area_pixels(int *out_top, int *out_right,
                                  int *out_bottom, int *out_left) {
     if (out_top) *out_top = 0;
     if (out_right) *out_right = 0;
@@ -252,7 +257,7 @@ void ko_ios_get_safe_area_pixels(int *out_top, int *out_right,
  * may differ from the path saved at pick time — providers can rename
  * containers across launches. The activated scope is intentionally
  * not released; it stays alive for the app session. */
-bool ko_ios_resolve_bookmark(const char *bookmark_b64,
+KO_FFI_EXPORT bool ko_ios_resolve_bookmark(const char *bookmark_b64,
                              char *out_path, size_t path_cap,
                              char *out_error, size_t error_cap) {
     if (!bookmark_b64 || !out_path || path_cap == 0) return false;
