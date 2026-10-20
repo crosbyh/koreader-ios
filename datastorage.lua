@@ -107,6 +107,11 @@ local function initDataDir()
         "settings",
         "styletweaks",
     }
+    if os.getenv("KO_IOS") == "1" then
+        -- User fonts live in the data dir on iOS (see font_settings.lua);
+        -- create it so it's there to drop fonts into from the Files app.
+        table.insert(sub_data_dirs, "fonts")
+    end
     local datadir = DataStorage:getDataDir()
     for _, dir in ipairs(sub_data_dirs) do
         local sub_data_dir = string.format("%s/%s", datadir, dir)
