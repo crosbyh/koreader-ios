@@ -117,10 +117,48 @@ The resulting `.app` bundle is under
 and won't install on a device (no signing) but will pass structural
 validation.
 
+## TestFlight / App Store Connect
+
+The Xcode build produces a bundle App Store Connect accepts:
+
+- `embed-bundle-payload.sh` wraps each native library into
+  `Frameworks/<name>.framework` and drops the standalone executables
+  (`sdcv`, `luajit`, the desktop launcher), since uploads with loose
+  dylibs or executables are rejected (ITMS-90171). It writes
+  `app/ios-frameworks.lua`, which `setupkoenv.lua` uses to redirect
+  `ffi.load` / `package.loadlib` to the frameworks.
+- `PrivacyInfo.xcprivacy` declares the required-reason APIs the C
+  libraries call; `Info.plist.in` sets `ITSAppUsesNonExemptEncryption`
+  and a Bluetooth usage string (SDL3 links CoreBluetooth).
+- `MARKETING_VERSION` in `platform/ios/project.yml` is the App Store
+  version (up to three integers, so `2026.3` rather than `git describe`).
+  Pass a higher `CURRENT_PROJECT_VERSION` for every upload.
+
+To upload: set `DEVELOPMENT_TEAM` and `PRODUCT_BUNDLE_IDENTIFIER` in
+`platform/ios/project.yml`, create the app record in App Store Connect
+(Apps → + → New App, pick the bundle ID), then Product → Archive →
+Distribute App → TestFlight & App Store. Headless:
+
+```sh
+xcodegen generate   # root project.yml includes platform/ios/project.yml
+xcodebuild -project KOReader.xcodeproj -scheme KOReader -configuration Release \
+    -destination 'generic/platform=iOS' -archivePath build/KOReader.xcarchive \
+    CURRENT_PROJECT_VERSION=<n> -allowProvisioningUpdates archive
+xcodebuild -exportArchive -archivePath build/KOReader.xcarchive \
+    -exportOptionsPlist <options with method app-store-connect, destination upload> \
+    -exportPath build/export -allowProvisioningUpdates
+```
+
+The pre-build phase builds `base/` itself (in a clean environment, so
+Xcode's iOS build settings don't leak into host tools) and initializes
+stale submodules, so a fresh clone needs no separate `make` step.
+
 ## What's actually built
 
 - **One main exec** (`KOReader`) — compiled from `platform/ios/ios_loader.m`
   + `ios_filepicker.m`, links `libluajit` and `libSDL3`.
+- The dylibs below ship as `Frameworks/koreadermonolibtic.framework`,
+  `luajit.framework` and `SDL3.framework` (see TestFlight above).
 - **One monolithic dylib** (`libkoreader-monolibtic.dylib`) — every
   thirdparty C/C++ library KOReader uses, statically linked into a
   single ~17 MiB shared library so iOS does one dyld load + signature
