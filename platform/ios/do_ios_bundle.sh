@@ -26,7 +26,7 @@ VERSION="$(cat "${STAGING_KOREADER}/git-rev")"
 # Defaults; override from env to retarget.
 IOS_PLATFORM="${IOS_PLATFORM:-iphoneos}"
 IOS_ARCH="${IOS_ARCH:-arm64}"
-IOS_DEPLOYMENT_TARGET="${IOS_DEPLOYMENT_TARGET:-14.0}"
+IOS_DEPLOYMENT_TARGET="${IOS_DEPLOYMENT_TARGET:-15.0}"
 IOS_SDK_PATH="$(xcrun --sdk "${IOS_PLATFORM}" --show-sdk-path)"
 
 if [ "${IOS_PLATFORM}" = "iphonesimulator" ]; then

@@ -15,7 +15,7 @@ set -euo pipefail
 
 # Override per-config / per-arch if needed; defaults match make/ios.mk.
 IOS_ARCH="${IOS_ARCH:-arm64}"
-IOS_DEPLOYMENT_TARGET="${IOS_DEPLOYMENT_TARGET:-14.0}"
+IOS_DEPLOYMENT_TARGET="${IOS_DEPLOYMENT_TARGET:-${IPHONEOS_DEPLOYMENT_TARGET:-15.0}}"
 
 APP_DIR="${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
 STAGING="${SRCROOT}/koreader-ios-${IOS_ARCH}-apple-ios${IOS_DEPLOYMENT_TARGET}"

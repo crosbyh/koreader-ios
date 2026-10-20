@@ -188,7 +188,7 @@ App Store. Then `sudo xcode-select -s /Applications/Xcode.app`.
 Likely a stale build artefact. Wipe the per-target build dir and rerun:
 
 ```sh
-rm -rf base/build/arm64-apple-ios14.0
+rm -rf base/build/arm64-apple-ios15.0
 make TARGET=ios xcodeproj
 ```
 

@@ -2,7 +2,7 @@ name: KOReader
 options:
   bundleIdPrefix: rocks.koreader
   deploymentTarget:
-    iOS: "14.0"
+    iOS: "15.0"
   createIntermediateGroups: true
   developmentLanguage: en
   # The project lives at the repo root so paths in `sources`/`scripts`
@@ -18,7 +18,9 @@ settings:
     ONLY_ACTIVE_ARCH: YES
     ARCHS: arm64
     VALID_ARCHS: arm64
-    IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+    # Xcode 27's minimum. The pre-build phase hands this to make, so base/
+    # builds into base/build/arm64-apple-ios<this>.
+    IPHONEOS_DEPLOYMENT_TARGET: "15.0"
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: N4ZMG97CA9
     PRODUCT_NAME: KOReader
@@ -50,11 +52,11 @@ targets:
         # produced by `make TARGET=ios base`. The pre-build script makes
         # sure that's up-to-date before we start compiling.
         HEADER_SEARCH_PATHS:
-          - $(SRCROOT)/base/build/arm64-apple-ios14.0/staging/include
-          - $(SRCROOT)/base/build/arm64-apple-ios14.0/staging/include/luajit-2.1
+          - $(SRCROOT)/base/build/arm64-apple-ios$(IPHONEOS_DEPLOYMENT_TARGET)/staging/include
+          - $(SRCROOT)/base/build/arm64-apple-ios$(IPHONEOS_DEPLOYMENT_TARGET)/staging/include/luajit-2.1
         LIBRARY_SEARCH_PATHS:
-          - $(SRCROOT)/base/build/arm64-apple-ios14.0/libs
-          - $(SRCROOT)/base/build/arm64-apple-ios14.0/staging/lib
+          - $(SRCROOT)/base/build/arm64-apple-ios$(IPHONEOS_DEPLOYMENT_TARGET)/libs
+          - $(SRCROOT)/base/build/arm64-apple-ios$(IPHONEOS_DEPLOYMENT_TARGET)/staging/lib
         OTHER_LDFLAGS:
           - -lluajit
           - -lSDL3
@@ -89,7 +91,7 @@ targets:
           # `all` (not `base`) so the koreader-ios-…/koreader staging
           # tree gets assembled too — the post-build script rsyncs from
           # there into the .app.
-          make TARGET=ios all
+          make TARGET=ios IOS_DEPLOYMENT_TARGET="${IPHONEOS_DEPLOYMENT_TARGET}" all
         basedOnDependencyAnalysis: false
     postBuildScripts:
       - name: Embed assets and dylibs

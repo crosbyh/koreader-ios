@@ -4,6 +4,10 @@ SOUND = $(INSTALL_DIR)/%
 # koreader-base directory
 KOR_BASE ?= base
 
+# iOS: Xcode 27 and its libc++ no longer accept deployment targets below
+# 15.0 (base defaults to 14.0). Keep in sync with platform/ios/project.yml.
+IOS_DEPLOYMENT_TARGET ?= 15.0
+
 include $(KOR_BASE)/Makefile.defs
 
 RELEASE_DATE := $(shell git show -s --format=format:"%cd" --date=short HEAD)
