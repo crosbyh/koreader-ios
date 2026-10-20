@@ -19,12 +19,14 @@ settings:
     ARCHS: arm64
     VALID_ARCHS: arm64
     IPHONEOS_DEPLOYMENT_TARGET: "14.0"
-    # Personal team / free-cert signing: leave team blank so each user
-    # can fill it in via the Xcode UI. Manual style avoids the
-    # capabilities-spam Xcode does under Automatic.
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: N4ZMG97CA9
     PRODUCT_NAME: KOReader
+    # App Store versions must be up to three integers, so this tracks the
+    # upstream KOReader release (v2026.03) rather than `git describe`.
+    # The build number is overridden per upload (iosb: commit count).
+    MARKETING_VERSION: "2026.3"
+    CURRENT_PROJECT_VERSION: "1"
 
 targets:
   KOReader:
@@ -36,10 +38,12 @@ targets:
       - path: platform/ios/ios_filepicker.m
         type: file
       - path: platform/ios/Assets.xcassets
+      - path: platform/ios/PrivacyInfo.xcprivacy
+        buildPhase: resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: rocks.koreader.ios
-        INFOPLIST_FILE: platform/ios/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.crosbyhayton.koreader
+        INFOPLIST_FILE: platform/ios/Info.plist.in
         CODE_SIGN_ENTITLEMENTS: platform/ios/KOReader.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Header / library search paths point at the `base/build` tree
@@ -54,10 +58,11 @@ targets:
         OTHER_LDFLAGS:
           - -lluajit
           - -lSDL3
-        # rpath so dyld finds the dylibs we copy into app/libs at post-build.
+        # rpath so dyld finds the dylibs the post-build script wraps into
+        # Frameworks/<name>.framework.
         LD_RUNPATH_SEARCH_PATHS:
           - $(inherited)
-          - "@executable_path/app/libs"
+          - "@executable_path/Frameworks"
         # Embedded dylibs need this; iOS 14+ enforces it.
         LD_DYLIB_INSTALL_NAME: ""
         # Quiet the noisy override of macOS-isms.
@@ -73,8 +78,14 @@ targets:
           set -euo pipefail
           # Xcode strips PATH down. Reinstate Homebrew GNU tools used by
           # KOReader's Makefile.
-          export PATH="$(brew --prefix)/opt/findutils/libexec/gnubin:$(brew --prefix)/opt/gnu-getopt/bin:$(brew --prefix)/opt/make/libexec/gnubin:$(brew --prefix)/opt/util-linux/bin:${PATH}"
+          BREW_PREFIX="$(PATH="/opt/homebrew/bin:/usr/local/bin:${PATH}" brew --prefix)"
+          export PATH="${BREW_PREFIX}/opt/findutils/libexec/gnubin:${BREW_PREFIX}/opt/gnu-getopt/bin:${BREW_PREFIX}/opt/make/libexec/gnubin:${BREW_PREFIX}/opt/util-linux/bin:${BREW_PREFIX}/bin:${PATH}"
           cd "${SRCROOT}"
+          # Headless builds check out the superproject commit only; bring
+          # base/ and the other submodules along when they're missing or stale.
+          if git submodule status --recursive | grep -q '^[-+]'; then
+            git submodule update --init --recursive
+          fi
           # `all` (not `base`) so the koreader-ios-…/koreader staging
           # tree gets assembled too — the post-build script rsyncs from
           # there into the .app.

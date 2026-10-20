@@ -26,10 +26,12 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 # version + features as the iOS target), then fall back to PATH.
 HOST_LUAJIT=""
 HOST_LUAJIT_SHARE=""
-for machine in arm64-apple-darwin25.0.0 arm64-apple-darwin24.0.0 \
-               x86_64-apple-darwin25.0.0 x86_64-apple-darwin24.0.0; do
-    cand="${REPO_ROOT}/base/build/${machine}/luajit"
-    share="${REPO_ROOT}/base/build/${machine}/staging/share/luajit-2.1"
+# The machine dir follows the host's Darwin version (arm64-apple-darwin25.0.0,
+# …), so glob rather than enumerate releases.
+for build_dir in "${REPO_ROOT}"/base/build/arm64-apple-darwin* \
+                 "${REPO_ROOT}"/base/build/x86_64-apple-darwin*; do
+    cand="${build_dir}/luajit"
+    share="${build_dir}/staging/share/luajit-2.1"
     if [ -x "$cand" ] && [ -d "$share" ]; then
         HOST_LUAJIT="$cand"
         HOST_LUAJIT_SHARE="$share"

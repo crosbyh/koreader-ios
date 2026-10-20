@@ -73,6 +73,13 @@ int main(int argc, char *argv[]) {
          * KOReader still self-identifies as the SDL emulator otherwise. */
         setenv("KO_IOS", "1", 1);
 
+        /* Native libraries ship as Frameworks/<name>.framework (the App
+         * Store rejects loose dylibs); setupkoenv.lua redirects loads there. */
+        NSString *frameworksPath = [[NSBundle mainBundle] privateFrameworksPath];
+        if (frameworksPath) {
+            setenv("KO_IOS_FRAMEWORKS", [frameworksPath fileSystemRepresentation], 1);
+        }
+
         /* iOS sandbox: use the per-app Documents dir for user data. */
         NSArray<NSString *> *docs = NSSearchPathForDirectoriesInDomains(
             NSDocumentDirectory, NSUserDomainMask, YES);
@@ -112,6 +119,7 @@ quit:
         unsetenv("SDL_FULLSCREEN");
         unsetenv("SDL_TOUCH_MOUSE_EVENTS");
         unsetenv("KO_IOS");
+        unsetenv("KO_IOS_FRAMEWORKS");
         return retval;
     }
 }

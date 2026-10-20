@@ -1,0 +1,7 @@
+# Root entry point for XcodeGen so headless tooling that runs a bare
+# `xcodegen generate` in the repo root (e.g. iosb) regenerates
+# KOReader.xcodeproj on every build. The spec itself lives with the rest
+# of the iOS platform files; `make TARGET=ios xcodeproj` uses it directly.
+include:
+  - path: platform/ios/project.yml
+    relativePaths: false

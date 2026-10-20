@@ -102,7 +102,10 @@ rsync -aL \
 
 # 3) Generate Info.plist with version filled in.
 echo "[*] Writing Info.plist"
-sed "s|@VERSION@|${VERSION#v}|g" \
+sed -e "s|\$(MARKETING_VERSION)|${VERSION#v}|g" \
+    -e "s|\$(CURRENT_PROJECT_VERSION)|1|g" \
+    -e "s|\$(PRODUCT_BUNDLE_IDENTIFIER)|rocks.koreader.ios|g" \
+    -e "s|\$(IPHONEOS_DEPLOYMENT_TARGET)|${IOS_DEPLOYMENT_TARGET}|g" \
     "${PLATFORM_DIR}/Info.plist.in" >"${APP_BUNDLE}/Info.plist"
 
 printf 'APPL????' >"${APP_BUNDLE}/PkgInfo"
